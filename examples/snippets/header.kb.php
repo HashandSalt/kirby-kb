@@ -25,13 +25,13 @@
 
     <nav class="menu">
 
-      <kb:foreach items="$site->children()->listed()" as="item">
-        <kb:if condition="$item->isOpen()">
-          <kb:a aria-current="page" url="{{ $item->url() }}">{{ $item->title()->esc() }}</kb:a>
-          <kb:else />
-          <kb:a url="{{ $item->url() }}">{{ $item->title()->esc() }}</kb:a>
-        </kb:if>
-      </kb:foreach>
+  <kb:foreach items="$site->children()->listed()" as="item">
+    <kb:if condition="$item->isOpen()">
+      <kb:a aria-current="page" url="{{ $item->url() }}">{{ $item->title()->esc() }}</kb:a>
+      <kb:else />
+      <kb:a url="{{ $item->url() }}">{{ $item->title()->esc() }}</kb:a>
+    </kb:if>
+  </kb:foreach>
 
       <kb:snippet name="social" />
     </nav>

@@ -11,9 +11,7 @@
             <kb:image width="1024" mode="resize" format="webp" height="1024" src="$album->cover()"
               alt="{{ $album->cover()->alt()->esc() }}" />
             <figcaption>
-              <span>
-                <span class="example-name">{{ $album->title()->esc() }}</span>
-              </span>
+              <span>{{ $album->title()->esc() }}</span>
             </figcaption>
           </figure>
         </kb:a>

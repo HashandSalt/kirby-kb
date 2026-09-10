@@ -1,0 +1,16 @@
+{
+  "name": "getkirby/kirby-kb",
+  "description": "Kirby KB Plugin",
+  "license": "MIT",
+  "type": "kirby-plugin",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "James Steel",
+      "email": "hello@hashandsalt.com"
+    }
+  ],
+  "require": {
+    "getkirby/composer-installer": "^1.1"
+  }
+}
