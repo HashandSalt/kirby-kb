@@ -28,7 +28,7 @@
   </div>
 </footer>
 
-<kb:js files="assets/js/prism.js, assets/js/lightbox.js, assets/js/index.js, @auto" />
+<kb:js files="prism.js, lightbox.js, index.js, @auto" />
 
 </body>
 

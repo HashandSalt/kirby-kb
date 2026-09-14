@@ -9,7 +9,7 @@
   <title>{{ $site->title()->esc() }} | {{ $page->title()->esc() }}</title>
 
 
-  <kb:css files="assets/css/prism.css, assets/css/lightbox.css, assets/css/index.css, @auto" />
+  <kb:css files="prism.css, lightbox.css, index.css, @auto" />
 
   <kb:link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 

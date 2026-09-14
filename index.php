@@ -10,6 +10,11 @@ require_once __DIR__ . '/src/Template.php';
 require_once __DIR__ . '/src/KbSnippet.php';
 
 App::plugin('hashandsalt/kb', [
+    'options' => [
+        'cssPath' => 'assets/css',
+        'jsPath' => 'assets/js',
+        'dateFormat' => 'd/m/y',
+    ],
     'components' => [
         'template' => function (
             App $kirby,
@@ -35,7 +40,13 @@ App::plugin('hashandsalt/kb', [
                 return KbSnippet::begin($file, $data);
             }
 
-            return (new Renderer($data['page'] ?? null, $data))->render($file);
+            return (new Renderer(
+                $data['page'] ?? null,
+                $data,
+                $kirby->option('hashandsalt.kb.cssPath', 'assets/css'),
+                $kirby->option('hashandsalt.kb.jsPath', 'assets/js'),
+                $kirby->option('hashandsalt.kb.dateFormat', 'd/m/y')
+            ))->render($file);
         }
     ]
 ]);

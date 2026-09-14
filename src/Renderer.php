@@ -2,15 +2,26 @@
 
 namespace Kirby\Kb;
 
+use Kirby\Cms\App;
 use Kirby\Cms\Html;
 use Kirby\Filesystem\F;
 
 class Renderer
 {
+    protected string $cssPath;
+    protected string $jsPath;
+    protected string $dateFormat;
+
     public function __construct(
         protected object|null $page,
-        protected array $data = []
+        protected array $data = [],
+        string|null $cssPath = null,
+        string|null $jsPath = null,
+        string|null $dateFormat = null
     ) {
+        $this->cssPath = $cssPath ?? (string) App::instance()->option('hashandsalt.kb.cssPath', 'assets/css');
+        $this->jsPath = $jsPath ?? (string) App::instance()->option('hashandsalt.kb.jsPath', 'assets/js');
+        $this->dateFormat = $dateFormat ?? (string) App::instance()->option('hashandsalt.kb.dateFormat', 'd/m/y');
     }
 
     public function render(string $file): string
@@ -200,7 +211,7 @@ class Renderer
 
     protected function field(array $attributes): string
     {
-        $field = $attributes['name'] ?? $attributes['field'] ?? '';
+        $field = $attributes['name'] ?? '';
         if ($this->page === null || $field === '') {
             return '';
         }
@@ -217,14 +228,22 @@ class Renderer
     protected function email(array $attributes): string
     {
         $email = $this->fieldOrValue($attributes, 'address');
-        $emailAttributes = $this->evaluatedAttributes($attributes, ['class', 'rel', 'target', 'title']);
+        // no address given, or the field it points to is missing/empty
+        if ($email === '') {
+            return '';
+        }
+
+        $emailAttributes = [
+            ...$this->evaluatedAttributes($attributes, ['class', 'rel', 'target', 'title']),
+            ...$this->dataAttributes($attributes),
+        ];
 
         return Html::email($email, $attributes['text'] ?? null, $emailAttributes);
     }
 
     protected function date(array $attributes, string $content, bool $selfClosing = false): string
     {
-        $format = $attributes['format'] ?? 'c';
+        $format = $attributes['format'] ?? $this->dateFormat;
 
         if (isset($attributes['field']) === false) {
             $formatted = date($format);
@@ -233,7 +252,10 @@ class Renderer
                 return $formatted;
             }
 
-            $tagAttributes = $this->evaluatedAttributes($attributes, ['class']);
+            $tagAttributes = [
+                ...$this->evaluatedAttributes($attributes, ['class']),
+                ...$this->dataAttributes($attributes),
+            ];
             $label = trim($content);
 
             return Html::tag(
@@ -254,7 +276,10 @@ class Renderer
             return $value->toDate($format);
         }
 
-        $tagAttributes = $this->evaluatedAttributes($attributes, ['class']);
+        $tagAttributes = [
+            ...$this->evaluatedAttributes($attributes, ['class']),
+            ...$this->dataAttributes($attributes),
+        ];
         $label = trim($content);
         $formatted = $value->toDate($format);
 
@@ -268,7 +293,10 @@ class Renderer
     protected function tel(array $attributes): string
     {
         $tel = $this->fieldOrValue($attributes, 'number');
-        $telAttributes = $this->evaluatedAttributes($attributes, ['class', 'rel', 'target', 'title']);
+        $telAttributes = [
+            ...$this->evaluatedAttributes($attributes, ['class', 'rel', 'target', 'title']),
+            ...$this->dataAttributes($attributes),
+        ];
 
         return Html::tel($tel, $attributes['text'] ?? null, $telAttributes);
     }
@@ -293,7 +321,7 @@ class Renderer
 
     protected function js(array $attributes): string
     {
-        $urls = $this->assetUrls($attributes);
+        $urls = $this->assetUrls($attributes, $this->jsPath);
         if ($urls === []) {
             return '';
         }
@@ -303,7 +331,7 @@ class Renderer
 
     protected function css(array $attributes): string
     {
-        $urls = $this->assetUrls($attributes);
+        $urls = $this->assetUrls($attributes, $this->cssPath);
         if ($urls === []) {
             return '';
         }
@@ -311,14 +339,21 @@ class Renderer
         return (string) css($urls);
     }
 
-    protected function assetUrls(array $attributes): array
+    protected function assetUrls(array $attributes, string $prefix): array
     {
         $files = $attributes['files'] ?? $attributes['src'] ?? '';
         if ($files === '') {
             return [];
         }
 
-        return array_values(array_filter(array_map('trim', explode(',', $files)), fn ($url) => $url !== ''));
+        return array_values(array_filter(array_map(function (string $url) use ($prefix): string {
+            $url = trim($url);
+            if ($url === '' || $url === '@auto' || str_starts_with($url, '/') || str_starts_with($url, $prefix . '/') || preg_match('/^[a-z][a-z0-9+.-]*:/i', $url) === 1) {
+                return $url;
+            }
+
+            return $prefix . '/' . $url;
+        }, explode(',', $files)), fn ($url) => $url !== ''));
     }
 
     protected function evaluatedAttributes(array $attributes, array $names): array
@@ -326,11 +361,26 @@ class Renderer
         $result = [];
         foreach ($names as $name) {
             if (isset($attributes[$name])) {
-                $result[$name] = $this->snippetVariable($attributes[$name]);
+                $value = $attributes[$name];
+                // bare attributes (no "=") are parsed as bool true; keep as-is so Html::attr renders them valueless
+                $result[$name] = is_string($value) === true ? $this->snippetVariable($value) : $value;
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Collects data-* and aria-* attributes so tags can pass through arbitrary data/aria attributes
+     */
+    protected function dataAttributes(array $attributes): array
+    {
+        $names = array_filter(
+            array_keys($attributes),
+            fn ($name) => str_starts_with($name, 'data-') || str_starts_with($name, 'aria-')
+        );
+
+        return $this->evaluatedAttributes($attributes, $names);
     }
 
     protected function headLink(array $attributes): string
@@ -563,7 +613,8 @@ class Renderer
             return '';
         }
 
-        return $this->page->{$field}()->value();
+        // field may not exist or hold no value, which resolves to null
+        return (string) ($this->page->{$field}()->value() ?? '');
     }
 
     protected function adjacentTitle(string $method): string
