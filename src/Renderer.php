@@ -179,7 +179,7 @@ class Renderer
             'next-title' => $this->adjacentTitle('nextListed'),
             'prev' => $this->adjacentLink('prevListed', $attributes, $content),
             'next' => $this->adjacentLink('nextListed', $attributes, $content),
-            'permlink' => $this->page?->url() ?? '',
+            'permalink' => $this->permalink($attributes),
             'link' => $this->headLink($attributes),
             'blocks' => $this->blocks($attributes),
             'a' => $this->link($attributes, $content),
@@ -617,6 +617,21 @@ class Renderer
 
         // field may not exist or hold no value, which resolves to null
         return (string) ($this->page->{$field}()->value() ?? '');
+    }
+
+    protected function permalink(array $attributes): string
+    {
+        $target = $this->page;
+
+        if (isset($attributes['page']) && $attributes['page'] !== '') {
+            $target = page($this->snippetVariable($attributes['page']));
+        }
+
+        if (is_object($target) === false || method_exists($target, 'permalink') === false) {
+            return '';
+        }
+
+        return Html::tag('a', [$target->title()->esc()->value()], ['href' => $target->permalink()]);
     }
 
     protected function adjacentTitle(string $method): string

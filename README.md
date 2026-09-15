@@ -68,7 +68,7 @@ kb:prev-title
 kb:next-title
 kb:prev
 kb:next
-kb:permlink
+kb:permalink
 kb:link
 kb:blocks
 kb:a
