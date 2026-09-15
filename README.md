@@ -66,6 +66,8 @@ kb:css
 kb:excerpt
 kb:prev-title
 kb:next-title
+kb:prev
+kb:next
 kb:permlink
 kb:link
 kb:blocks

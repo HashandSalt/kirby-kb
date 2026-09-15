@@ -177,6 +177,8 @@ class Renderer
             'excerpt' => $this->excerpt($attributes),
             'prev-title' => $this->adjacentTitle('prevListed'),
             'next-title' => $this->adjacentTitle('nextListed'),
+            'prev' => $this->adjacentLink('prevListed', $attributes, $content),
+            'next' => $this->adjacentLink('nextListed', $attributes, $content),
             'permlink' => $this->page?->url() ?? '',
             'link' => $this->headLink($attributes),
             'blocks' => $this->blocks($attributes),
@@ -218,7 +220,7 @@ class Renderer
 
         $value = $this->page->{$field}();
 
-        if (($attributes['kt'] ?? 'false') === 'true') {
+        if (($attributes['kt'] ?? 'true') === 'true') {
             return (string) $value->kt();
         }
 
@@ -628,6 +630,33 @@ class Renderer
         return $page?->title()->esc()->value() ?? '';
     }
 
+    protected function adjacentLink(string $method, array $attributes, string $content): string
+    {
+        if ($this->page === null || method_exists($this->page, $method) === false) {
+            return '';
+        }
+
+        $page = $this->page->{$method}();
+        if ($page === null) {
+            return '';
+        }
+
+        $label = $content !== '' ? $content : $page->title()->esc()->value();
+        $linkAttributes = ['href' => $page->url()];
+
+        foreach ($attributes as $name => $value) {
+            if (
+                in_array($name, ['class', 'style', 'target', 'rel', 'title'], true) ||
+                str_starts_with($name, 'data-') === true ||
+                str_starts_with($name, 'aria-') === true
+            ) {
+                $linkAttributes[$name] = $this->snippetVariable($value);
+            }
+        }
+
+        return Html::tag('a', [$label], $linkAttributes);
+    }
+
     protected function excerpt(array $attributes): string
     {
         $field = $attributes['field'] ?? 'excerpt';
@@ -638,17 +667,20 @@ class Renderer
 
         $chars = isset($attributes['chars']) && ctype_digit($attributes['chars'])
             ? (int) $attributes['chars']
-            : 0;
+            : 120;
         $strip = ($attributes['strip'] ?? 'true') !== 'false';
         $rep = $attributes['rep'] ?? ' …';
+        $renderKirbyText = ($attributes['kt'] ?? 'true') === 'true';
 
         $value = $this->page->{$field}();
 
         try {
-            return $value->toBlocks()->excerpt($chars, $strip, $rep);
+            $excerpt = $value->toBlocks()->excerpt($chars, $strip, $rep);
         } catch (\Throwable) {
-            return $value->excerpt($chars, $strip, $rep)->value();
+            $excerpt = $value->excerpt($chars, $strip, $rep)->value();
         }
+
+        return $renderKirbyText === true ? kt($excerpt) : $excerpt;
     }
 
     protected function fieldIsNotEmpty(string $field): bool
