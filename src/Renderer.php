@@ -12,6 +12,35 @@ class Renderer
     protected string $jsPath;
     protected string $dateFormat;
 
+    /**
+     * Valid Vimeo Player embed options, see
+     * https://developer.vimeo.com/player/sdk/embed
+     */
+    protected const VIMEO_OPTIONS = [
+        'airplay', 'audio_tracks', 'audiotrack', 'autopause', 'autoplay',
+        'background', 'byline', 'cc', 'chapter_id', 'chapters', 'chromecast',
+        'color', 'colors', 'controls', 'dnt', 'end_time', 'fullscreen',
+        'height', 'initial_quality', 'interactive_markers',
+        'interactive_params', 'keyboard', 'loop', 'maxheight', 'max_quality',
+        'maxwidth', 'min_quality', 'muted', 'pip', 'play_button_position',
+        'playsinline', 'portrait', 'preload', 'progress_bar', 'quality',
+        'quality_selector', 'responsive', 'skipping_forward', 'speed',
+        'start_time', 'texttrack', 'thumbnail_id', 'title', 'transcript',
+        'transparent', 'unmute_button', 'vimeo_logo', 'volume',
+        'watch_full_video',
+    ];
+
+    /**
+     * Valid YouTube embed player parameters, see
+     * https://developers.google.com/youtube/player_parameters
+     */
+    protected const YOUTUBE_OPTIONS = [
+        'autoplay', 'cc_lang_pref', 'cc_load_policy', 'color', 'controls',
+        'disablekb', 'enablejsapi', 'end', 'fs', 'hl', 'iv_load_policy',
+        'list', 'listType', 'loop', 'origin', 'playlist', 'playsinline',
+        'rel', 'start', 'widget_referrer',
+    ];
+
     public function __construct(
         protected object|null $page,
         protected array $data = [],
@@ -474,10 +503,22 @@ class Renderer
         $options = $this->snippetVariable($attributes['options'] ?? '');
         $videoAttributes = $this->snippetVariable($attributes['attr'] ?? '');
 
+        $options = [
+            // tag attributes matching a valid Vimeo embed option, overridden by an explicit "options" array
+            ...$this->evaluatedAttributes($attributes, self::VIMEO_OPTIONS),
+            ...(is_array($options) === true ? $options : []),
+        ];
+
+        $videoAttributes = [
+            // width/height belong on the <iframe>, not the embed URL query string
+            ...$this->evaluatedAttributes($attributes, ['width', 'height']),
+            ...(is_array($videoAttributes) === true ? $videoAttributes : []),
+        ];
+
         return vimeo(
             $this->fieldOrValue($attributes, 'url'),
-            is_array($options) === true ? $options : [],
-            is_array($videoAttributes) === true ? $videoAttributes : []
+            $options,
+            $videoAttributes
         ) ?? '';
     }
 
@@ -486,10 +527,22 @@ class Renderer
         $options = $this->snippetVariable($attributes['options'] ?? '');
         $videoAttributes = $this->snippetVariable($attributes['attr'] ?? '');
 
+        $options = [
+            // tag attributes matching a valid YouTube embed parameter, overridden by an explicit "options" array
+            ...$this->evaluatedAttributes($attributes, self::YOUTUBE_OPTIONS),
+            ...(is_array($options) === true ? $options : []),
+        ];
+
+        $videoAttributes = [
+            // width/height belong on the <iframe>, not the embed URL query string
+            ...$this->evaluatedAttributes($attributes, ['width', 'height']),
+            ...(is_array($videoAttributes) === true ? $videoAttributes : []),
+        ];
+
         return youtube(
             $this->fieldOrValue($attributes, 'url'),
-            is_array($options) === true ? $options : [],
-            is_array($videoAttributes) === true ? $videoAttributes : []
+            $options,
+            $videoAttributes
         ) ?? '';
     }
 
