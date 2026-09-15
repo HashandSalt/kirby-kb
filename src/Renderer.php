@@ -355,7 +355,7 @@ class Renderer
             }
 
             return $prefix . '/' . $url;
-        }, explode(',', $files)), fn ($url) => $url !== ''));
+        }, explode(',', $files)), fn($url) => $url !== ''));
     }
 
     protected function evaluatedAttributes(array $attributes, array $names): array
@@ -379,7 +379,7 @@ class Renderer
     {
         $names = array_filter(
             array_keys($attributes),
-            fn ($name) => str_starts_with($name, 'data-') || str_starts_with($name, 'aria-')
+            fn($name) => str_starts_with($name, 'data-') || str_starts_with($name, 'aria-')
         );
 
         return $this->evaluatedAttributes($attributes, $names);
@@ -443,7 +443,18 @@ class Renderer
         $options = is_array($options) === true ? $options : [];
         $videoAttributes = is_array($videoAttributes) === true ? $videoAttributes : [];
 
-        if (is_object($poster) === true && method_exists($poster, 'url') === true) {
+        $videoAttributes = [
+            ...$this->evaluatedAttributes(
+                $attributes,
+                ['autoplay', 'class', 'controls', 'height', 'loop', 'muted', 'preload', 'width']
+            ),
+            ...$this->dataAttributes($attributes),
+            ...$videoAttributes,
+        ];
+
+        if (is_string($poster) === true && $poster !== '') {
+            $poster = $this->fileByName($poster)?->url() ?? $poster;
+        } elseif (is_object($poster) === true && method_exists($poster, 'url') === true) {
             $poster = $poster->url();
         }
 
@@ -451,7 +462,11 @@ class Renderer
             $videoAttributes['poster'] = $poster;
         }
 
-        return video($this->fieldOrValue($attributes, 'url'), $options, $videoAttributes) ?? '';
+        $sourceAttribute = isset($attributes['src']) ? 'src' : 'url';
+        $url = $this->fieldOrValue($attributes, $sourceAttribute);
+        $file = $url !== '' ? $this->fileByName($url) : null;
+
+        return video($file?->url() ?? $url, $options, $videoAttributes) ?? '';
     }
 
     protected function vimeo(array $attributes): string
@@ -526,16 +541,24 @@ class Renderer
         return Html::tag('a', [$label], $linkAttributes);
     }
 
+    protected function fileByName(string $name): object|null
+    {
+        $file = $this->page?->files()->filter(
+            fn($file) => $file->url() === $name
+        )->first();
+
+        return $file ?? $this->page?->file($name);
+    }
+
     protected function image(array $attributes): string
     {
         $image = $attributes['src'] ?? $attributes['image'] ?? '';
         $image = $this->snippetVariable($image);
 
+        $fileFromName = null;
         if (is_string($image) === true && $image !== '') {
-            $file = $this->page?->files()->filter(
-                fn ($file) => $file->url() === $image
-            )->first();
-            $image = $file ?? asset($image);
+            $fileFromName = $this->fileByName($image);
+            $image = $fileFromName ?? asset($image);
         }
 
         if (
@@ -561,7 +584,7 @@ class Renderer
             $options = array_filter([
                 'format' => $format !== '' ? $this->snippetVariable($format) : null,
                 'quality' => $quality
-            ], static fn ($value) => $value !== null);
+            ], static fn($value) => $value !== null);
 
             $image = match ($mode) {
                 'crop' => method_exists($image, 'crop')
@@ -583,10 +606,23 @@ class Renderer
             ['alt', 'class', 'height', 'loading', 'sizes', 'width']
         );
 
+        // fall back to the file's own alt field when src was a filename and no alt was given explicitly
+        if (isset($imageAttributes['alt']) === false && $fileFromName !== null && is_callable([$fileFromName, 'alt'])) {
+            $imageAttributes['alt'] = $fileFromName->alt()->value();
+        }
+
         $ratio = $this->snippetVariable($attributes['ratio'] ?? 'auto');
         $ratio = is_object($ratio) && method_exists($ratio, 'value') ? $ratio->value() : $ratio;
         $contain = $this->snippetVariable($attributes['contain'] ?? false);
-        $imageAttributes['style'] = 'aspect-ratio: ' . $ratio . '; object-fit: ' . ($contain ? 'contain' : 'cover');
+        $objectFit = isset($attributes['object-fit'])
+            ? $this->snippetVariable($attributes['object-fit'])
+            : ($contain ? 'contain' : 'cover');
+
+        $style = 'object-fit: ' . $objectFit;
+        if (isset($attributes['ratio'])) {
+            $style = 'aspect-ratio: ' . $ratio . '; ' . $style;
+        }
+        $imageAttributes['style'] = $style;
 
         return method_exists($image, 'html')
             ? $image->html($imageAttributes)
@@ -837,7 +873,7 @@ class Renderer
 
         extract($this->snippetData(), EXTR_SKIP);
 
-        return eval('return ' . $value . ';');
+        return eval ('return ' . $value . ';');
     }
 
     protected function snippetData(): array
@@ -963,10 +999,12 @@ class Renderer
             $content = Html::tag(
                 'a',
                 ['{{ $' . $variable . '->title()->esc() }}'],
-                ['href' => [
-                    'value' => '{{ $' . $variable . '->url() }}',
-                    'escape' => false,
-                ]]
+                [
+                    'href' => [
+                        'value' => '{{ $' . $variable . '->url() }}',
+                        'escape' => false,
+                    ]
+                ]
             );
         }
 
