@@ -219,7 +219,7 @@ class Renderer
             'qr' => $this->qr($attributes),
             'gist' => $this->gist($attributes),
             'svg' => $this->svg($attributes),
-            'section' => $this->page?->parent()?->title()->esc()->value() ?? '',
+            'section' => ($this->page?->parent() ?? $this->page?->kirby()->site())?->title()->esc()->value() ?? '',
             'breadcrumb' => $this->breadcrumb($attributes),
             'tags' => $this->tags($attributes),
             'if' => $this->conditional($this->condition($attributes), $content),
@@ -454,12 +454,15 @@ class Renderer
     protected function svg(array $attributes): string
     {
         $path = $this->snippetVariable($attributes['src'] ?? '');
-        if ($path === '') {
+        if (is_string($path) === false || $path === '') {
             return '';
         }
 
+        // fall back to a page file (e.g. an svg placed next to the content) before treating src as a root-relative path
+        $source = $this->fileByName($path) ?? $path;
+
         return function_exists('svg')
-            ? (string) svg($path)
+            ? (string) svg($source)
             : '';
     }
 
