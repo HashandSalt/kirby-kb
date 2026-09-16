@@ -64,7 +64,7 @@ class Renderer
         $text = $this->renderIfBlocks($text);
 
         $text = preg_replace_callback(
-            '/<kb:([a-z][a-z0-9_-]*)((?:\s+[a-z][a-z0-9_-]*(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?)*)\s*>(.*?)<\/kb:\1\s*>/is',
+            '/<kb:([a-z][a-z0-9_-]*+)((?:\s++[a-z][a-z0-9_-]*+(?:\s*+=\s*+(?:"[^"]*+"|\'[^\']*+\'|[^\s>]++))?+)*+)\s*+>(.*?)<\/kb:\1\s*+>/is',
             function (array $match): string {
                 $attributes = $this->attributes($match[2] ?? '');
                 $content = in_array(strtolower($match[1]), ['if-field', 'foreach', 'pages', 'php', 'structure'], true)
@@ -76,8 +76,9 @@ class Renderer
             $text
         );
 
+
         $text = preg_replace_callback(
-            '/<kb:([a-z][a-z0-9_-]*)((?:\s+[a-z][a-z0-9_-]*(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?)*)\s*\/\s*>/i',
+            '/<kb:([a-z][a-z0-9_-]*+)((?:\s++[a-z][a-z0-9_-]*+(?:\s*+=\s*+(?:"[^"]*+"|\'[^\']*+\'|[^\s>]++))?+)*+)\s*+\/\s*+>/i',
             fn(array $match): string => $this->tag($match[1], $this->attributes($match[2] ?? ''), '', true),
             $text
         );
@@ -792,8 +793,8 @@ class Renderer
 
     protected function fieldIsNotEmpty(string $field): bool
     {
-        return $field !== '' && $this->page !== null && method_exists($this->page, $field)
-            && $this->page->{$field}()->isNotEmpty();
+        return $field !== '' && $this->page !== null
+            && $this->page->content()->get($field)->isNotEmpty();
     }
 
     protected function condition(array $attributes): bool
@@ -847,7 +848,7 @@ class Renderer
             $data = [...$this->data, $variable => $item];
             $renderer = new self($this->page, $data);
             $nestedContent = preg_replace_callback(
-                '/<kb:foreach((?:\s+[a-z][a-z0-9_-]*(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?)*\s*)>(.*?)<\/kb:foreach\s*>/is',
+                '/<kb:foreach((?:\s++[a-z][a-z0-9_-]*+(?:\s*+=\s*+(?:"[^"]*+"|\'[^\']*+\'|[^\s>]++))?+)*+\s*+)>(.*?)<\/kb:foreach\s*+>/is',
                 fn(array $match): string => $renderer->foreach(
                     $renderer->attributes($match[1] ?? ''),
                     $match[2] ?? ''
