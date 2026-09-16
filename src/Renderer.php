@@ -11,6 +11,7 @@ class Renderer
     protected string $cssPath;
     protected string $jsPath;
     protected string $dateFormat;
+    protected int $excerptChars;
 
     /**
      * Valid Vimeo Player embed options, see
@@ -46,11 +47,13 @@ class Renderer
         protected array $data = [],
         string|null $cssPath = null,
         string|null $jsPath = null,
-        string|null $dateFormat = null
+        string|null $dateFormat = null,
+        int|null $excerptChars = null
     ) {
         $this->cssPath = $cssPath ?? (string) App::instance()->option('hashandsalt.kb.cssPath', 'assets/css');
         $this->jsPath = $jsPath ?? (string) App::instance()->option('hashandsalt.kb.jsPath', 'assets/js');
         $this->dateFormat = $dateFormat ?? (string) App::instance()->option('hashandsalt.kb.dateFormat', 'd/m/y');
+        $this->excerptChars = $excerptChars ?? (int) App::instance()->option('hashandsalt.kb.excerptChars', 80);
     }
 
     public function render(string $file): string
@@ -775,7 +778,7 @@ class Renderer
 
         $chars = isset($attributes['chars']) && ctype_digit($attributes['chars'])
             ? (int) $attributes['chars']
-            : 120;
+            : $this->excerptChars;
         $strip = ($attributes['strip'] ?? 'true') !== 'false';
         $rep = $attributes['rep'] ?? ' …';
         $renderKirbyText = ($attributes['kt'] ?? 'true') === 'true';

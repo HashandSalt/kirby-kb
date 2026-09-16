@@ -14,6 +14,7 @@ App::plugin('hashandsalt/kb', [
         'cssPath' => 'assets/css',
         'jsPath' => 'assets/js',
         'dateFormat' => 'd/m/y',
+        'excerptChars' => 80,
     ],
     'components' => [
         'template' => function (
@@ -45,7 +46,8 @@ App::plugin('hashandsalt/kb', [
                 $data,
                 $kirby->option('hashandsalt.kb.cssPath', 'assets/css'),
                 $kirby->option('hashandsalt.kb.jsPath', 'assets/js'),
-                $kirby->option('hashandsalt.kb.dateFormat', 'd/m/y')
+                $kirby->option('hashandsalt.kb.dateFormat', 'd/m/y'),
+                $kirby->option('hashandsalt.kb.excerptChars', 80)
             ))->render($file);
         }
     ]

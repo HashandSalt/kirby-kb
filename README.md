@@ -67,6 +67,7 @@ You can override some defaults with the following config options:
 'hashandsalt.kb.cssPath' => 'assets/css',
 'hashandsalt.kb.jsPath' => 'assets/js',
 'hashandsalt.kb.dateFormat' => 'd/m/y',
+'hashandsalt.kb.excerptChars' => 80,
 ```
 
 ## Tag documentation
@@ -170,10 +171,11 @@ Includes one or more CSS files via the `files` attribute (comma separated), reso
 
 ### kb:excerpt
 
-Outputs an excerpt of a page field, optionally limited to a number of characters via `chars`.
+Outputs an excerpt of a page field, optionally limited to a number of characters via `chars` (defaults to 80, configurable via the `hashandsalt.kb.excerptChars` option).
 
 ```html
-<kb:excerpt field="text" /> <kb:excerpt field="text" chars="80" />
+<kb:excerpt field="text" />
+<kb:excerpt field="text" chars="280" />
 ```
 
 ### kb:prev-title / kb:next-title
