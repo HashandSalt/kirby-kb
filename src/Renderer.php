@@ -887,7 +887,13 @@ class Renderer
         }
 
         $items = $source->toStructure();
-        return $this->renderItems($items, $variable, $content);
+
+        $wrapTag = trim((string) ($attributes['wraptag'] ?? 'ul'));
+        $breakTag = trim((string) ($attributes['breaktag'] ?? 'li'));
+        $wrapClass = trim((string) ($attributes['wrapclass'] ?? $attributes['class'] ?? ''));
+        $breakClass = trim((string) ($attributes['breakclass'] ?? ''));
+
+        return $this->renderItems($items, $variable, $content, false, $wrapTag, $breakTag, $wrapClass, $breakClass);
     }
 
     protected function php(string $content): string
@@ -1097,13 +1103,31 @@ class Renderer
         return $output;
     }
 
-    protected function renderItems(iterable $items, string $variable, string $content, bool $itemIsPage = false): string
-    {
+    protected function renderItems(
+        iterable $items,
+        string $variable,
+        string $content,
+        bool $itemIsPage = false,
+        string $wrapTag = '',
+        string $breakTag = '',
+        string $wrapClass = '',
+        string $breakClass = ''
+    ): string {
         $output = '';
         foreach ($items as $item) {
             $page = $itemIsPage ? $item : $this->page;
             $data = $variable === '' ? $this->data : [...$this->data, $variable => $item];
-            $output .= (new self($page, $data))->renderText($content);
+            $itemContent = (new self($page, $data))->renderText($content);
+
+            if ($breakTag !== '') {
+                $itemContent = Html::tag($breakTag, [$itemContent], $breakClass !== '' ? ['class' => $breakClass] : []);
+            }
+
+            $output .= $itemContent;
+        }
+
+        if ($wrapTag !== '') {
+            return Html::tag($wrapTag, [$output], $wrapClass !== '' ? ['class' => $wrapClass] : []);
         }
 
         return $output;

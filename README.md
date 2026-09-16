@@ -1,48 +1,43 @@
 # KB template language for Kirby
 
-A new template language created to make it easier to build sites. The language uses HTML like tags to to make templates and snippets more readable and succint. It is largely inspired by the TXP template language used by Textpattern.
+As a designer first / programmer second I have always found working with PHP and HTML templates a bit unweildly and hard to read. This isnt a Kirby specific issue, its just fact of life working with systems that use PHP and HTMl together to display dynamic content.
 
-It makes it easier to create things like for each loops loops and if conditions by using special, Kirby specific html tags where the tags attributes are passed through to Kirby's page/file/user methods under the hood.
+Sometimes you find yourself getting into a whole mess of concatinating HTNL and PHP. But what if you could do things in a simpler way? Enter kirby-kb. A collection of Kirby specific custom HTML tags that do the heavy lifting behind the scenes.
 
-But what  can I do with it? Good question! Here is a small example:
+> [!WARNING]  
+> This plugin is very green and not ready for production use yet. It has been tested against the Kirby Starter kit. The current tags available reflect everything rquired to reproduce the entire Starterkit using kirby-kb tags. There are more tags and improvements to come. Feel free to install the plugin and mess around with it but please don't use this yet on anything critical.
 
 ```html
-<kb:foreach items="$page->children()->listed()" as="project">
-<li class="column" style="--columns: 3">
-<kb:a url="$project">
-<figure>
-  <span class="img" style="--w:4;--h:5">
-    <kb:if condition="$cover = $project->cover()">
-      <kb:img src="$project->cover()" mode="resize" width="400" height="500" format="webp" alt="$cover->alt()->esc()" />
-    </kb:if>
-  </span>
-  <figcaption class="img-caption">
-    <kb:title page="$project" />
-  </figcaption>
-</figure>
-</kb:a>
-</li>
+<kb:foreach items="$field" as="layout">
+  <section
+    class="grid margin-xl"
+    id="{{ $layout->id() }}"
+    style="--gutter: 1.5rem"
+  >
+    <kb:foreach items="$layout->columns()" as="column">
+      <div class="column" style="--columns:{{ $column->span() }}">
+        <div class="text">
+          <kb:blocks src="$column->blocks()" />
+        </div>
+      </div>
+    </kb:foreach>
+  </section>
 </kb:foreach>
 ```
 
-This is equavalent to the PHP & HTML mashup:
+This is equavalent to the PHP & HTML mash-up:
 
 ```php
-<?php foreach ($page->children()->listed() as $project): ?>
-<li class="column" style="--columns: 3">
-<a href="<?= $project->url() ?>">
-  <figure>
-    <span class="img" style="--w:4;--h:5">
-      <?php if ($cover = $project->cover()): ?>
-        <img src="<?= $cover->crop(400, 500)->url() ?>" alt="<?= $cover->alt()->esc() ?>">
-      <?php endif ?>
-    </span>
-    <figcaption class="img-caption">
-      <?= $project->title()->esc() ?>
-    </figcaption>
-  </figure>
-</a>
-</li>
+<?php foreach ($field->toLayouts() as $layout): ?>
+<section class="grid margin-xl" id="<?= esc($layout->id(), 'attr') ?>" style="--gutter: 1.5rem">
+  <?php foreach ($layout->columns() as $column): ?>
+  <div class="column" style="--columns:<?= esc($column->span(), 'css') ?>">
+    <div class="text">
+      <?= $column->blocks() ?>
+    </div>
+  </div>
+  <?php endforeach ?>
+</section>
 <?php endforeach ?>
 ```
 
@@ -50,7 +45,29 @@ See how it becomes more readable?
 
 ## Installation
 
-TODO - write manual and composer install instructions
+### Manual Install
+
+Download and copy the plugin folder to `site/plugins`.
+
+### Composer Install
+
+Composer installation will be available once the plugin is more ready.
+
+## Usage
+
+In order for the tags to be recognised and parsed, templates and snippets need to have the `.kb.php` extension. For example `home.kb.php`.
+
+In the case of using blocks, you can over ride the default blocks by creating block snippets with `.kb.php` extension. The built in defualt blocks will still work fine without being over written.
+
+### Plugin options
+
+You can override some defaults with the following config options:
+
+```php
+'hashandsalt.kb.cssPath' => 'assets/css',
+'hashandsalt.kb.jsPath' => 'assets/js',
+'hashandsalt.kb.dateFormat' => 'd/m/y',
+```
 
 ## Tag documentation
 
@@ -156,8 +173,7 @@ Includes one or more CSS files via the `files` attribute (comma separated), reso
 Outputs an excerpt of a page field, optionally limited to a number of characters via `chars`.
 
 ```html
-<kb:excerpt field="text" />
-<kb:excerpt field="text" chars="80" />
+<kb:excerpt field="text" /> <kb:excerpt field="text" chars="80" />
 ```
 
 ### kb:prev-title / kb:next-title
@@ -165,8 +181,7 @@ Outputs an excerpt of a page field, optionally limited to a number of characters
 Outputs the title of the previous/next listed sibling page.
 
 ```html
-<kb:prev-title />
-<kb:next-title />
+<kb:prev-title /> <kb:next-title />
 ```
 
 ### kb:prev / kb:next
@@ -186,8 +201,7 @@ Outputs a link to the previous/next listed sibling page. Used self-closing it li
 Outputs a link using a page's UUID-based permalink. Defaults to the current page, or another page passed via `page`.
 
 ```html
-<kb:permalink page="photography" />
-<kb:permalink page="notes" />
+<kb:permalink page="photography" /> <kb:permalink page="notes" />
 ```
 
 ### kb:link
@@ -196,6 +210,16 @@ Outputs a `<link>` tag in the document `<head>`, e.g. for favicons. All attribut
 
 ```html
 <kb:link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+```
+
+The value of the href attribute automatically gets processed by `url()` resulting in something like:
+
+```html
+<link
+  href="http://starterkit.test/favicon.ico"
+  rel="shortcut icon"
+  type="image/x-icon"
+/>
 ```
 
 ### kb:blocks
@@ -208,7 +232,7 @@ Renders a blocks field (via `field`) or a blocks object/field passed via `src`.
 
 ### kb:a
 
-Outputs a link. The target can be another page (`url` pointing to a page/URL/expression), and falls back to the current page. The tag's content becomes the link label.
+Outputs a link. The target can be another page (`url` pointing to a page/URL/expression), and falls back to the current page. The tag's content becomes the link label. Supports data attributes and Aria attributes.
 
 ```html
 <kb:a url="{{ $page->url() }}">{{ $page->title() }}</kb:a>
@@ -221,11 +245,32 @@ Outputs a responsive `<img>` (or `<picture>`) tag for a file. `src` can be a fil
 
 ```html
 <!-- from a file name -->
-<kb:image src="team.jpg" mode="crop" quality="80" format="webp" object-fit="cover" ratio="16/9" width="1440" height="450" class="team-image" />
+<kb:image
+  src="team.jpg"
+  mode="crop"
+  quality="80"
+  format="webp"
+  object-fit="cover"
+  ratio="16/9"
+  width="1440"
+  height="450"
+  class="team-image"
+/>
 
 <!-- via cover() set in model -->
 <kb:if condition="$cover = $page->cover()">
-  <kb:image src="$cover" mode="crop" quality="80" format="webp" object-fit="contain" ratio="16/9" width="1440" height="450" class="team-image" alt="$cover->alt()->esc()" />
+  <kb:image
+    src="$cover"
+    mode="crop"
+    quality="80"
+    format="webp"
+    object-fit="contain"
+    ratio="16/9"
+    width="1440"
+    height="450"
+    class="team-image"
+    alt="$cover->alt()->esc()"
+  />
 </kb:if>
 ```
 
@@ -234,7 +279,13 @@ Outputs a responsive `<img>` (or `<picture>`) tag for a file. `src` can be a fil
 Outputs an HTML5 `<video>` tag. `src`/`url` can be a filename on the current page or a URL; `poster` accepts a filename or URL for the poster image.
 
 ```html
-<kb:video src="forest.mp4" poster="forest.jpg" controls="true" width="640" height="360" />
+<kb:video
+  src="forest.mp4"
+  poster="forest.jpg"
+  controls="true"
+  width="640"
+  height="360"
+/>
 ```
 
 ### kb:vimeo
@@ -250,7 +301,11 @@ Outputs a responsive Vimeo embed. Any attribute matching a valid Vimeo player pa
 Outputs a responsive YouTube embed. Any attribute matching a valid YouTube player parameter is passed through to the embed URL.
 
 ```html
-<kb:youtube url="https://www.youtube.com/watch?v=UKMK31-jjhw" width="640" height="360" />
+<kb:youtube
+  url="https://www.youtube.com/watch?v=UKMK31-jjhw"
+  width="640"
+  height="360"
+/>
 ```
 
 ### kb:qr
@@ -266,7 +321,10 @@ Outputs a QR code image for the given `data` (a URL, string, or page/file object
 Embeds a GitHub Gist via `url`, optionally scoped to a single `file` in the gist.
 
 ```html
-<kb:gist url="https://gist.github.com/lukaskleinschmidt/cf97ebff8901053df2b085db6d28c7e2" file="blueprint.yaml" />
+<kb:gist
+  url="https://gist.github.com/lukaskleinschmidt/cf97ebff8901053df2b085db6d28c7e2"
+  file="blueprint.yaml"
+/>
 ```
 
 ### kb:svg
@@ -298,7 +356,13 @@ Outputs a breadcrumb navigation (`<nav><ol>...</ol></nav>`) from the site down t
 Splits a tags field (via `field`, defaults to `tags`) and outputs each tag as a link filtering the parent page by that tag. Customise the markup with `wraptag`, `breaktag`, `breakclass` and `wrapclass`/`class`.
 
 ```html
-<kb:tags field="sometags" class="tag-list" wraptag="ul" breaktag="li" breakclass="tag" />
+<kb:tags
+  field="sometags"
+  class="tag-list"
+  wraptag="ul"
+  breaktag="li"
+  breakclass="tag"
+/>
 ```
 
 ### kb:if
@@ -308,8 +372,20 @@ Conditionally renders its content based on a `condition` (or `test`) expression.
 ```html
 <kb:if condition="$page->hasFiles()">
   <p>The page has files.</p>
-<kb:else/>
+  <kb:else />
   <p>The page has no files.</p>
+</kb:if>
+```
+
+Tags can be nested in the if blocks
+
+```html
+<kb:if condition="$item->isOpen()">
+  <kb:a aria-current="page" url="{{ $item->url() }}"
+    >{{ $item->title()->esc() }}</kb:a
+  >
+  <kb:else />
+  <kb:a url="{{ $item->url() }}">{{ $item->title()->esc() }}</kb:a>
 </kb:if>
 ```
 
@@ -334,17 +410,44 @@ Loops over an iterable expression (`items`/`in`), making each item available und
 </kb:foreach>
 ```
 
-### kb:structure
-
-Loops over a structure field, making each entry available under the variable named by `as` (defaults to `item`). `field` can be a plain field name on the current page, or an expression targeting a field on another page.
+Tags can be nested in the foreach block.
 
 ```html
-<kb:structure field="social" as="platform">
-  <li>
-    <kb:a url="{{ $platform->url()->esc() }}" target="_blank" rel="noopener noreferrer">
-      {{ $platform->platform()->esc() }}
-    </kb:a>
-  </li>
+<ul>
+  <kb:foreach items="$site->children()->listed()" as="item">
+    <li>
+      <kb:if condition="$item->isOpen()">
+        <kb:a aria-current="page" url="{{ $item->url() }}"
+          >{{ $item->title()->esc() }}</kb:a
+        >
+        <kb:else />
+        <kb:a url="{{ $item->url() }}">{{ $item->title()->esc() }}</kb:a>
+      </kb:if>
+    </li>
+  </kb:foreach>
+</ul>
+```
+
+### kb:structure
+
+Loops over a structure field, making each entry available under the variable named by `as` (defaults to `item`). `field` can be a plain field name on the current page, or an expression targeting a field on another page. Wraps the output with `wraptag`/`breaktag` (default `ul`/`li`) and `class`(or `wrapclass`)/`breakclass`, similar to `kb:tags` and `kb:pages`.
+
+```html
+<kb:structure
+  field="social"
+  as="platform"
+  wraptag="ul"
+  breaktag="li"
+  class="contact-social"
+  breakclass="contact-social-item"
+>
+  <kb:a
+    url="{{ $platform->url()->esc() }}"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {{ $platform->platform()->esc() }}
+  </kb:a>
 </kb:structure>
 ```
 
@@ -353,9 +456,7 @@ Loops over a structure field, making each entry available under the variable nam
 Executes raw PHP code, with the current template/snippet data extracted into scope.
 
 ```html
-<kb:php>
-  echo $page->title()->esc();
-</kb:php>
+<kb:php> echo $page->title()->esc(); </kb:php>
 ```
 
 ### kb:snippet
@@ -366,18 +467,31 @@ Includes a snippet by name. Attributes other than `name` are passed to the snipp
 <kb:snippet name="header" />
 ```
 
+Passing attributes through to the snippet:
+
+```html
+<kb:snippet
+  name="layouts"
+  field="$page->layout()->toLayouts()"
+  sometext="Just passing in some text"
+/>
+```
+
+Using with slots
+
+````html
+<kb:snippet name="header">
+  <p>Here comes some slot content<p>
+</kb:snippet>
+
+
+Those attributes become $field and $sometext inside the 'layouts' snippet.
+
 ### kb:pages
 
-Loops over a page's children (or a `section`, or `"site"`), rendering the tag's content (or a default title link) for each. Supports `mode` (`listed`, `unlisted`, `both`), `sort`, `offset`, `limit`, `as`, and `wraptag`/`breaktag`/`class`/`breakclass` for wrapping markup.
+Loops over a page's children (or a `section`, or `"site"`), rendering the tag's content (or a default title link) for each. Supports `mode` (`listed`, `unlisted`, `both`), `sort`, `offset`, `limit`, and `wraptag`/`breaktag`/`class`/`breakclass` for wrapping markup.
 
 ```html
 <kb:pages section="photography" wraptag="ul" class="page-list-feature" breakclass="page-list-item" breaktag="li" mode="listed" limit="1" />
 <kb:pages section="photography" wraptag="ul" class="page-list" breakclass="page-list-item" breaktag="li" mode="listed" offset="1" />
-```
-
-
-
-
-
-
-
+````
