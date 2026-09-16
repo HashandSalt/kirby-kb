@@ -56,39 +56,39 @@ TODO - write manual and composer install instructions
 
 Complete list of tags:
 
-kb:title
-kb:field
-kb:email
-kb:tel
-kb:date
-kb:js
-kb:css
-kb:excerpt
-kb:prev-title
-kb:next-title
-kb:prev
-kb:next
-kb:permalink
-kb:link
-kb:blocks
-kb:a
-kb:img
-kb:video
-kb:vimeo
-kb:youtube
-kb:qr
-kb:gist
-kb:svg
-kb:section
-kb:breadcrumb
-kb:tags
-kb:if
-kb:if-field
-kb:foreach
-kb:structure
-kb:php
-kb:snippet
-kb:pages
+[kb:title](#kbtitle)
+[kb:field](#kbfield)
+[kb:email](#kbemail)
+[kb:tel](#kbtel)
+[kb:date](#kbdate)
+[kb:js](#kbjs)
+[kb:css](#kbcss)
+[kb:excerpt](#kbexcerpt)
+[kb:prev-title](#kbprev-title--kbnext-title)
+[kb:next-title](#kbprev-title--kbnext-title)
+[kb:prev](#kbprev--kbnext)
+[kb:next](#kbprev--kbnext)
+[kb:permalink](#kbpermalink)
+[kb:link](#kblink)
+[kb:blocks](#kbblocks)
+[kb:a](#kba)
+[kb:img](#kbimg--kbimage)
+[kb:video](#kbvideo)
+[kb:vimeo](#kbvimeo)
+[kb:youtube](#kbyoutube)
+[kb:qr](#kbqr)
+[kb:gist](#kbgist)
+[kb:svg](#kbsvg)
+[kb:section](#kbsection)
+[kb:breadcrumb](#kbbreadcrumb)
+[kb:tags](#kbtags)
+[kb:if](#kbif)
+[kb:if-field](#kbif-field)
+[kb:foreach](#kbforeach)
+[kb:structure](#kbstructure)
+[kb:php](#kbphp)
+[kb:snippet](#kbsnippet)
+[kb:pages](#kbpages)
 
 Working examples of every tag can be found in `site/templates/sandbox.kb.php`.
 
