@@ -867,14 +867,26 @@ class Renderer
         $variable = $attributes['as'] ?? 'item';
 
         if (
-            $this->page === null
-            || $field === ''
+            $field === ''
             || preg_match('/^[a-z_][a-z0-9_]*$/i', $variable) !== 1
         ) {
             return '';
         }
 
-        $items = $this->page->{$field}()->toStructure();
+        // allow field to be either a plain field name on the current page or an expression (e.g. targeting another page)
+        $source = $this->snippetVariable($field);
+        if (is_string($source) === true) {
+            if ($this->page === null) {
+                return '';
+            }
+            $source = $this->page->content()->get($source);
+        }
+
+        if (is_object($source) === false || is_callable([$source, 'toStructure']) === false) {
+            return '';
+        }
+
+        $items = $source->toStructure();
         return $this->renderItems($items, $variable, $content);
     }
 
