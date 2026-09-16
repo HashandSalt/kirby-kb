@@ -660,8 +660,8 @@ class Renderer
         );
 
         // fall back to the file's own alt field when src was a filename and no alt was given explicitly
-        if (isset($imageAttributes['alt']) === false && $fileFromName !== null && is_callable([$fileFromName, 'alt'])) {
-            $imageAttributes['alt'] = $fileFromName->alt()->value();
+        if (isset($imageAttributes['alt']) === false && $fileFromName !== null && method_exists($fileFromName, 'content')) {
+            $imageAttributes['alt'] = $fileFromName->content()->get('alt')->value();
         }
 
         $ratio = $this->snippetVariable($attributes['ratio'] ?? 'auto');
