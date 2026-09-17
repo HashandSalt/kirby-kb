@@ -10,10 +10,7 @@
     </div>
     <div class="column" style="--columns: 2">
       <h2>Pages</h2>
-
-      <kb:pages section="photography" wraptag="ul" class="page-list-feature" breakclass="page-list-item" breaktag="li" mode="listed" limit="1" />
-      <kb:pages section="photography" wraptag="ul" class="page-list" breakclass="page-list-item" breaktag="li" mode="listed" offset="1" />
-
+      <kb:pages section="site" />
     </div>
     <div class="column" style="--columns: 2">
       <h2>Kirby</h2>

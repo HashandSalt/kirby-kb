@@ -9,7 +9,7 @@
         <figure>
           <span class="img" style="--w:4;--h:5">
             <kb:if condition="$cover = $project->cover()">
-              <kb:img src="$project->cover()" mode="resize" width="400" height="500" format="webp" alt="$cover->alt()->esc()" />
+              <kb:img src="$project->cover()" width="400" height="500" format="webp" alt="$cover->alt()->esc()" />
               <kb:else />
               <p>No cover image</p>
             </kb:if>

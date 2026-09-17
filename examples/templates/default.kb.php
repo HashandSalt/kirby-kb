@@ -5,7 +5,7 @@
     <kb:title />
   </h1>
   <div class="text">
-    <kb:field name="text"/>
+    <kb:field name="text" />
   </div>
 </article>
 

@@ -16,7 +16,8 @@
           <li>
             <kb:a url="{{ $image->url() }}" data-lightbox>
               <figure class="img" style="--w:{{ $image->width() }};--h:{{ $image->height() }}">
-                <kb:img src="{{ $image->url() }}" mode="resize" width="400" height="500" format="webp" quality="80" alt="{{ $image->alt()->esc() }}" />
+                <kb:img src="{{ $image->url() }}" mode="resize" width="400" height="500" format="webp" quality="80"
+                  alt="{{ $image->alt()->esc() }}" />
               </figure>
             </kb:a>
           </li>

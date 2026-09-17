@@ -23,18 +23,16 @@
     <section class="column text" style="--columns: 4">
 
       <h3>On the web</h3>
-      <ul class="contact-social">
-        <kb:structure field="social" as="platform">
-          <li>
-            <kb:a url="{{ $platform->url()->esc() }}" target="_blank" rel="noopener noreferrer">
-              {{ $platform->platform()->esc() }}
-            </kb:a>
-          </li>
-        </kb:structure>
-      </ul>
 
-      
-<kb:qr data="https://example.com" />
+      <kb:structure class="contact-social" field="social" as="platform">
+
+        <kb:a url="{{ $platform->url()->esc() }}" target="_blank" rel="noopener noreferrer">
+          {{ $platform->platform()->esc() }}
+        </kb:a>
+
+      </kb:structure>
+
+
     </section>
   </div>
 </aside>
