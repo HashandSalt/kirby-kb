@@ -1,11 +1,11 @@
 # KB template language for Kirby
 
-As a designer first / programmer second I have always found working with PHP and HTML templates a bit unweildly and hard to read. This isnt a Kirby specific issue, its just fact of life working with systems that use PHP and HTMl together to display dynamic content.
+As a designer first / programmer second I have always found working with PHP and HTML templates a bit unweildly and hard to read. This isnt a Kirby specific issue, its just fact of life working with systems that use PHP and HTML together to display dynamic content.
 
-Sometimes you find yourself getting into a whole mess of concatinating HTNL and PHP. But what if you could do things in a simpler way? Enter kirby-kb. A collection of Kirby specific custom HTML tags that do the heavy lifting behind the scenes.
+Sometimes you find yourself getting into a whole mess of concatinating HTML and PHP. But what if you could do things in a simpler way? Enter kirby-kb. A collection of Kirby specific custom HTML tags that do the heavy lifting behind the scenes.
 
 > [!WARNING]  
-> This plugin is very green and not ready for production use yet. It has been tested against the Kirby Starter kit. The current tags available reflect everything rquired to reproduce the entire Starterkit using kirby-kb tags. There are more tags and improvements to come. Feel free to install the plugin and mess around with it but please don't use this yet on anything critical.
+> This plugin is very green and not ready for production use yet. It has been tested against the Kirby Starter kit. The current tags available reflect everything rquired to reproduce the entire Starterkit using kirby-kb tags. There are more tags and improvements to come. Feel free to install the plugin, mess around with it and feedback any issues, but please don't use this yet on anything critical.
 
 ```html
 <kb:foreach items="$field" as="layout">
@@ -40,8 +40,6 @@ This is equavalent to the PHP & HTML mash-up:
 </section>
 <?php endforeach ?>
 ```
-
-See how it becomes more readable?
 
 ## Installation
 
@@ -108,7 +106,8 @@ Complete list of tags:
 [kb:snippet](#kbsnippet)
 [kb:pages](#kbpages)
 
-Working examples of every tag can be found in `site/templates/sandbox.kb.php`.
+
+A full set of converted templates and snippets based on the Starter Kit can be found in the examples folder. Working examples of every tag can be found in `examples/templates/sandbox.kb.php`.
 
 ### kb:title
 
@@ -120,7 +119,7 @@ Outputs the title of the current page, or of another page passed via the `url` a
 
 ### kb:field
 
-Outputs the value of a field on the current page. Renders KirbyText by default; pass `kt="false"` to output the raw field value.
+Outputs the value of a field on the current page. Renders KirbyText by default; pass `kt="false"` attribute to output the raw field value.
 
 ```html
 <kb:field name="text" />
@@ -188,7 +187,7 @@ Outputs the title of the previous/next listed sibling page.
 
 ### kb:prev / kb:next
 
-Outputs a link to the previous/next listed sibling page. Used self-closing it links to the sibling's title; used as a pair, its content becomes the link label.
+Outputs a link to the previous/next listed sibling page. Used self-closing it links to the sibling's title; used as a pair, its content becomes the link text.
 
 ```html
 <kb:prev />
@@ -226,10 +225,11 @@ The value of the href attribute automatically gets processed by `url()` resultin
 
 ### kb:blocks
 
-Renders a blocks field (via `field`) or a blocks object/field passed via `src`.
+Renders a blocks field (via `field`) or a blocks object passed via `src`.
 
 ```html
 <kb:blocks field="blockexample" />
+<kb:blocks src="$someblock" />
 ```
 
 ### kb:a
@@ -324,8 +324,8 @@ Embeds a GitHub Gist via `url`, optionally scoped to a single `file` in the gist
 
 ```html
 <kb:gist
-  url="https://gist.github.com/lukaskleinschmidt/cf97ebff8901053df2b085db6d28c7e2"
-  file="blueprint.yaml"
+  url="https://gist.github.com/HashandSalt/8465ec11fbb63991e3885df52bc9f666"
+  file="somefile.txt"
 />
 ```
 
@@ -481,11 +481,11 @@ Passing attributes through to the snippet:
 
 Using with slots
 
-````html
+```html
 <kb:snippet name="header">
   <p>Here comes some slot content<p>
 </kb:snippet>
-
+```
 
 Those attributes become $field and $sometext inside the 'layouts' snippet.
 
