@@ -408,7 +408,7 @@ Loops over an iterable expression (`items`/`in`), making each item available und
 
 ```html
 <kb:foreach items="$site->children()->listed()" as="item">
-  <p>{{ $item->title()->esc() }}</p>
+  <p><kb:title page="$item" /></p>
 </kb:foreach>
 ```
 

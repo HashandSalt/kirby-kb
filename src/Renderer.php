@@ -691,9 +691,13 @@ class Renderer
 
     protected function targetUrl(array $attributes): object|null
     {
-        $target = isset($attributes['url']) && $attributes['url'] !== ''
-            ? $this->snippetVariable($attributes['url'])
-            : $this->page;
+        if (isset($attributes['page']) && $attributes['page'] !== '') {
+            $target = $this->snippetVariable($attributes['page']);
+        } elseif (isset($attributes['url']) && $attributes['url'] !== '') {
+            $target = $this->snippetVariable($attributes['url']);
+        } else {
+            $target = $this->page;
+        }
 
         if (is_string($target) === true) {
             $target = page($target);
