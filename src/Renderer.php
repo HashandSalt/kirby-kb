@@ -4,6 +4,7 @@ namespace Kirby\Kb;
 
 use Kirby\Cms\App;
 use Kirby\Cms\Html;
+use Kirby\Content\Field;
 use Kirby\Filesystem\F;
 
 class Renderer
@@ -18,16 +19,54 @@ class Renderer
      * https://developer.vimeo.com/player/sdk/embed
      */
     protected const VIMEO_OPTIONS = [
-        'airplay', 'audio_tracks', 'audiotrack', 'autopause', 'autoplay',
-        'background', 'byline', 'cc', 'chapter_id', 'chapters', 'chromecast',
-        'color', 'colors', 'controls', 'dnt', 'end_time', 'fullscreen',
-        'height', 'initial_quality', 'interactive_markers',
-        'interactive_params', 'keyboard', 'loop', 'maxheight', 'max_quality',
-        'maxwidth', 'min_quality', 'muted', 'pip', 'play_button_position',
-        'playsinline', 'portrait', 'preload', 'progress_bar', 'quality',
-        'quality_selector', 'responsive', 'skipping_forward', 'speed',
-        'start_time', 'texttrack', 'thumbnail_id', 'title', 'transcript',
-        'transparent', 'unmute_button', 'vimeo_logo', 'volume',
+        'airplay',
+        'audio_tracks',
+        'audiotrack',
+        'autopause',
+        'autoplay',
+        'background',
+        'byline',
+        'cc',
+        'chapter_id',
+        'chapters',
+        'chromecast',
+        'color',
+        'colors',
+        'controls',
+        'dnt',
+        'end_time',
+        'fullscreen',
+        'height',
+        'initial_quality',
+        'interactive_markers',
+        'interactive_params',
+        'keyboard',
+        'loop',
+        'maxheight',
+        'max_quality',
+        'maxwidth',
+        'min_quality',
+        'muted',
+        'pip',
+        'play_button_position',
+        'playsinline',
+        'portrait',
+        'preload',
+        'progress_bar',
+        'quality',
+        'quality_selector',
+        'responsive',
+        'skipping_forward',
+        'speed',
+        'start_time',
+        'texttrack',
+        'thumbnail_id',
+        'title',
+        'transcript',
+        'transparent',
+        'unmute_button',
+        'vimeo_logo',
+        'volume',
         'watch_full_video',
     ];
 
@@ -36,10 +75,26 @@ class Renderer
      * https://developers.google.com/youtube/player_parameters
      */
     protected const YOUTUBE_OPTIONS = [
-        'autoplay', 'cc_lang_pref', 'cc_load_policy', 'color', 'controls',
-        'disablekb', 'enablejsapi', 'end', 'fs', 'hl', 'iv_load_policy',
-        'list', 'listType', 'loop', 'origin', 'playlist', 'playsinline',
-        'rel', 'start', 'widget_referrer',
+        'autoplay',
+        'cc_lang_pref',
+        'cc_load_policy',
+        'color',
+        'controls',
+        'disablekb',
+        'enablejsapi',
+        'end',
+        'fs',
+        'hl',
+        'iv_load_policy',
+        'list',
+        'listType',
+        'loop',
+        'origin',
+        'playlist',
+        'playsinline',
+        'rel',
+        'start',
+        'widget_referrer',
     ];
 
     public function __construct(
@@ -247,17 +302,35 @@ class Renderer
     protected function field(array $attributes): string
     {
         $field = $attributes['name'] ?? '';
-        if ($this->page === null || $field === '') {
+        if ($field === '') {
             return '';
         }
 
-        $value = $this->page->{$field}();
+        $value = $this->fieldByNameOrExpression($field);
+        if ($value === null) {
+            return '';
+        }
 
         if (($attributes['kt'] ?? 'true') === 'true') {
             return (string) $value->kt();
         }
 
         return $value->value();
+    }
+
+    /**
+     * Resolves `name` to a Field, either a literal field name on the current
+     * page or a $-expression (e.g. `$item->title` inside kb:foreach/kb:structure)
+     */
+    protected function fieldByNameOrExpression(string $field): ?Field
+    {
+        if (preg_match('/^\$/', trim($field)) === 1) {
+            $value = $this->snippetVariable($field);
+
+            return $value instanceof Field ? $value : null;
+        }
+
+        return $this->page?->{$field}();
     }
 
     protected function email(array $attributes): string
